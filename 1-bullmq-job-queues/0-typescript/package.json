@@ -1,0 +1,21 @@
+{
+  "name": "bullmq-job-queues-typescript",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Redis-backed job queue: enqueue, worker, priority, delayed, retries with backoff, and DLQ (TypeScript + BullMQ)",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "bullmq": "5.8.7",
+    "express": "4.19.2",
+    "ioredis": "5.4.1"
+  },
+  "devDependencies": {
+    "@types/express": "4.17.21",
+    "@types/node": "20.14.2",
+    "typescript": "5.4.5"
+  }
+}

@@ -1,0 +1,42 @@
+name: rate-limiting-queues-csharp
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: rlq-cs-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  rate-api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: rlq-cs-api
+    environment:
+      APP: api
+      PORT: "3000"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    ports:
+      - "3000:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  throttled-worker:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: rlq-cs-worker
+    environment:
+      APP: worker
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    depends_on:
+      redis:
+        condition: service_healthy

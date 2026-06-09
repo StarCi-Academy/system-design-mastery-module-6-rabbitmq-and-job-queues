@@ -1,0 +1,46 @@
+name: rate-limiting-queues-ts
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: rlq-ts-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  rate-api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: rlq-ts-api
+    environment:
+      APP: api
+      PORT: "3000"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      RATE_CAPACITY: "5"
+      RATE_REFILL_PER_SEC: "5"
+    ports:
+      - "3000:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  throttled-worker:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: rlq-ts-worker
+    environment:
+      APP: worker
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      LIMIT_MAX: "10"
+      LIMIT_DURATION_MS: "1000"
+    depends_on:
+      redis:
+        condition: service_healthy

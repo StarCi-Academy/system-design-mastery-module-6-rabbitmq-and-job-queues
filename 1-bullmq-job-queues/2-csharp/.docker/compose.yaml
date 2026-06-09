@@ -1,0 +1,47 @@
+name: bullmq-job-queues-csharp
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: m5l1-cs-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  job-api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: m5l1-cs-job-api
+    environment:
+      APP: api
+      PORT: "3000"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      FAIL_RATE: "0.3"
+      PROCESS_DELAY_MS: "500"
+    ports:
+      - "3000:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: m5l1-cs-worker
+    environment:
+      APP: worker
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      FAIL_RATE: "0.3"
+      PROCESS_DELAY_MS: "500"
+      WORKER_CONCURRENCY: "1"
+    depends_on:
+      redis:
+        condition: service_healthy

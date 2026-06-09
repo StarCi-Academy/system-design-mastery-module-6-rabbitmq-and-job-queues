@@ -1,0 +1,16 @@
+server:
+  port: ${PORT:3000}
+
+spring:
+  rabbitmq:
+    addresses: ${RABBITMQ_ADDRESSES:rabbitmq:5672}
+    username: ${RABBITMQ_USER:starci}
+    password: ${RABBITMQ_PASS:Cuong123_A}
+    listener:
+      simple:
+        # Retry connecting while the broker is still starting up.
+        missing-queues-fatal: false
+
+app:
+  # producer = HTTP publisher API; consumer = @RabbitListener workers.
+  role: ${APP:producer}

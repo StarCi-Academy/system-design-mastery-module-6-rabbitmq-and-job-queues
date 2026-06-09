@@ -1,0 +1,48 @@
+name: rmq-fundamentals-java
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rmq-java-broker
+    environment:
+      RABBITMQ_DEFAULT_USER: starci
+      RABBITMQ_DEFAULT_PASS: Cuong123_A
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  producer-api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      APP: producer
+      PORT: "3000"
+      RABBITMQ_ADDRESSES: rabbitmq:5672
+      RABBITMQ_USER: starci
+      RABBITMQ_PASS: Cuong123_A
+    ports:
+      - "3000:3000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  # Spring AMQP idiom: one consumer process hosts all four @RabbitListeners.
+  # The two fanout queues are distinct, so the fanout broadcast still reaches both.
+  consumers:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      APP: consumer
+      RABBITMQ_ADDRESSES: rabbitmq:5672
+      RABBITMQ_USER: starci
+      RABBITMQ_PASS: Cuong123_A
+    depends_on:
+      rabbitmq:
+        condition: service_healthy

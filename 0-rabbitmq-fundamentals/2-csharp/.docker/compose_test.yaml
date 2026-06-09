@@ -1,0 +1,79 @@
+name: rmq-fundamentals-cs
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rmq-cs-broker-e2e
+    environment:
+      RABBITMQ_DEFAULT_USER: starci
+      RABBITMQ_DEFAULT_PASS: Cuong123_A
+    ports:
+      - "5753:5672"
+      - "15753:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  producer-api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      APP: producer
+      PORT: "3000"
+      RABBITMQ_URL: amqp://starci:Cuong123_A@rabbitmq:5672
+    ports:
+      - "3743:3000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  consumer-direct:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      APP: consumer
+      ROLE: direct
+      RABBITMQ_URL: amqp://starci:Cuong123_A@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  consumer-fanout-a:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      APP: consumer
+      ROLE: fanout-a
+      RABBITMQ_URL: amqp://starci:Cuong123_A@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  consumer-fanout-b:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      APP: consumer
+      ROLE: fanout-b
+      RABBITMQ_URL: amqp://starci:Cuong123_A@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  consumer-topic:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      APP: consumer
+      ROLE: topic
+      RABBITMQ_URL: amqp://starci:Cuong123_A@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
